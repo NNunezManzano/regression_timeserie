@@ -50,3 +50,4 @@ gbdt.fit(X_train, y_train)
 y_pred = gbdt.predict(X_test)
 
 print(f"Test score: {metrics.mean_absolute_error(y_pred, y_test)}")
+# coment
