@@ -1,3 +1,6 @@
+"""This script will build the model as is, getting data with ETL, making feature_engineering and running the algorithm"""
+
+
 import pandas as pd
 import numpy as np
 import os
@@ -8,7 +11,10 @@ import lightgbm as lgb
 
 
 # set workdir
-os.chdir("/home/nnm/Documents/Proyectos/repos/regression_timeserie")
+try:
+    os.chdir("../regression_timeserie")
+except:
+    os.chdir("../")
 
 ticker = "SPY"
 
