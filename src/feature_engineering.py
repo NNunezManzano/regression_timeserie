@@ -7,7 +7,10 @@ import os
 import numpy as np
 
 # set workdir
-os.chdir("/home/nnm/Documents/Proyectos/repos/regression_timeserie")
+try:
+    os.chdir("../regression_timeserie")
+except:
+    os.chdir("../")
 
 ticker = "SPY"
 
