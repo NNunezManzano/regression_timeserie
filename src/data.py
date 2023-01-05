@@ -1,5 +1,5 @@
 """
-coment
+
 Input: Get data from yfinance throw pandas_datareader lib.
 
 Output: .csv file.
@@ -19,7 +19,10 @@ import pandas as pd
 import yfinance as yf
 
 # set working directory
-os.chdir("/home/nnm/Documents/Proyectos/repos/regression_timeserie")
+try:
+    os.chdir("../regression_timeserie")
+except:
+    os.chdir("../")
 
 yf.pdr_override()
 
