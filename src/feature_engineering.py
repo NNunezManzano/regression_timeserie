@@ -1,48 +1,123 @@
 """
-    Add docsting
+    Feature engineering over int variables of a time serie dataset.
+    
+    lags
+    
+    trends
+    
+    stocks_ts
 """
-
 import pandas as pd
-import os
+
 import numpy as np
 
-# set workdir
-try:
-    os.chdir("../regression_timeserie")
-except:
-    os.chdir("../")
 
-ticker = "SPY"
+class Feature_engineering:
+    def lags(dataframe: pd.DataFrame, n_lags: int, column: str) -> pd.DataFrame:
+        """
+        Add "n" column with the close price of the previous "n" rows.
 
-# load data to dataframe
-data = pd.read_csv(f"./dataset/data_{ticker}.csv")
+        Args:
+            dataframe (pd.DataFrame): it must include the column "Close" or "Price"
+            n_lags (int): numbers of lags
+            column (str): column to be laged
 
-#
-data["daily_market_cap"] = data.Close * data.Volume
+        Returns:
+            pd.DataFrame: input dataframe with n_lags and delta_lags extra columns.
+        """
+        for n in np.arange(1, n_lags + 1):
+            col_name = f"{column}_lag_{n}"  # set new column name
+            dataframe[col_name] = dataframe[column].shift(
+                n
+            )  # get "n" previous row value
 
-data["delta_low"] = (data.Low / data.Close) - 1
+        dataframe.fillna(0, inplace=True)
 
-data["delta_high"] = (data.High / data.Close) - 1
+        # calculate delta between curr value and lag n
+        for n in np.arange(1, n_lags + 1):
+            lag_name = f"{column}_lag_{n}"
+            col_name = f"delta_{column}_{n}"
+            dataframe[col_name] = (dataframe[column] - dataframe[lag_name]) / dataframe[
+                column
+            ]  # percentage variation from lag
 
-data.drop(columns="Open", inplace=True)
+        return dataframe
 
-data = data.iloc[30:].reset_index(drop=True)
+    def trend(dataframe: pd.DataFrame, trend: int, column: str) -> pd.DataFrame:
+        """
+        Generate a trend of n days for the CLOSE PRICE of each row.
 
-data["vol_over_trend"] = np.where(data.Volume > data.volume_trend_30, 1, 0)
+        Args:
+            dataframe (pd.DataFrame): must include column "Close"
+            trend (int): number of days backward to create the trend
+            column (str): column to calculate trend of
 
-data["price_over_trend"] = np.where(data.Close > data.price_trend_60, 1, 0)
+        Returns:
+            pd.DataFrame: dataframe with an extra column named "{column}_trend_{trend}"
+        """
+        colname = f"{column}_trend_{trend}"
 
-data["delta_vol_trend"] = (data.Volume / data.volume_trend_30) - 1
+        try:
+            if len(dataframe[colname]) > 0:
+                raise NameError(f"Column '{colname}' already exist")
+        except:
+            pass
 
-data["delta_price_trend"] = (data.Close / data.price_trend_60) - 1
+        # take n periods in the past and get the mean value
+        dataframe[colname] = (
+            dataframe[column]
+            .rolling(
+                window=trend,
+                min_periods=1,
+                center=False,  # center must be set as "False" to not get data of the future.
+            )
+            .mean()
+        )
 
-print(data.shape)
+        # Now set if the current value is over or under the trend and calculate delta
+        overcol = f"{column[:3]}_over_trend"
 
-dir = "./dataset"
+        deltacol = f"{column[:3]}_delta_trend"
 
-if not os.path.exists(dir):
-    os.mkdir(dir)
+        # As it is only using the "lemma" of the column name, we have to check if it is already exist
+        try:
+            if len(dataframe[overcol]) > 0:
+                overcol = f"{column[:4]}_over_trend"
+        except:
+            pass
 
-file = f"{dir}/fe_data_{ticker}.csv"
+        try:
+            if len(dataframe[deltacol]) > 0:
+                deltacol = f"{column[:4]}_delta_trend"
+        except:
+            pass
 
-data.to_csv(file, index=False)
+        try:
+            if len(dataframe[overcol]) > 0:
+                raise NameError(f"Column '{overcol}' already exist")
+        except:
+            pass
+
+        try:
+            if len(dataframe[deltacol]) > 0:
+                raise NameError(f"Column '{deltacol}' already exist")
+        except:
+            pass
+
+        dataframe[overcol] = np.where(dataframe[column] > dataframe[colname], 1, 0)
+
+        dataframe[deltacol] = (dataframe[column] / dataframe[colname]) - 1
+
+        return dataframe
+
+    def stocks_ts(dataframe: pd.DataFrame) -> pd.DataFrame:
+        """
+        Creates new fueatures base on a OHLC time serie dataset.
+
+        Args:
+            dataframe (pd.DataFrame): must include column ,"Open", "High", "Low", "Close", "Volume".
+        """
+        dataframe["daily_market_cap"] = dataframe.Close * dataframe.Volume
+        dataframe["delta_low"] = (dataframe.Low / dataframe.Close) - 1
+        dataframe["delta_high"] = (dataframe.High / dataframe.Close) - 1
+        dataframe.drop(columns="Open", inplace=True)
