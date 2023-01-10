@@ -2,24 +2,20 @@
 
 import os
 
+import numpy as np
+
 import pandas as pd
 
 from feature_engineering import Feature_engineering as fe
 
-try:
-    os.chdir("../regression_timeserie")
-except:
-    os.chdir("../")
 
+class Multistep_reg:
+    def lightgb_ms(
+        self, X_train, X_test, y_train, y_test, regresor, period
+    ) -> pd.DataFrame:
 
-col = {
-    "col1": ["volume", "guru", "guru", "guru", "guru", "guru"],
-    "col2": [1, 2, 3, 4, 5, 6],
-}
+        for i in np.arange(period):
 
-df = pd.DataFrame.from_dict(col)
+            regresor.fit(X_train, y_train)
 
-df = fe.lags(df, 2, "col2")
-
-
-print(df)
+            y_pred = regresor.predict(X_test)
