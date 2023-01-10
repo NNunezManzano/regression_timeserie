@@ -5,24 +5,30 @@ import pandas as pd
 import numpy as np
 import os
 
-import sklearn as sk
-from sklearn import metrics
 import lightgbm as lgb
 
+from data import Data_extract
 
-# set workdir
-try:
-    os.chdir("../regression_timeserie")
-except:
-    os.chdir("../")
+from multistep import Multistep_reg
 
+# Parameters
 ticker = "SPY"
 
-data_fe = pd.read_csv(f"./dataset/fe_data_{ticker}.csv")
+start_date = "20200101"
+
+end_date = "20221231"
+
+test_period = 30
 
 
-train = data_fe.iloc[:2718]
-valid = data_fe.iloc[2718:2720]
+# Data extraction
+dex = Data_extract()
+
+data = dex.get_data(ticker, start_date=start_date, end_date=end_date)
+
+# train test split
+train = data.iloc[: len(data) - test_period]
+valid = data.iloc[len(data) - test_period :]
 
 X_train = train.drop(columns=["Close", "Date"])
 
@@ -32,15 +38,7 @@ X_test = valid.drop(columns=["Close", "Date"])
 
 y_test = valid.Close
 
-parameters = {
-    "boosting_type": "gbdt",
-    "objetive": "regression",
-    "metric": "auc",
-    "num_leaves": 10,
-    "learning_rate": 0.01,
-    "num_iterations": 500,
-    "seed": 42,
-}
+# Regresor
 gbdt = lgb.LGBMRegressor(
     boosting_type="gbdt",
     objetive="regression",
@@ -51,9 +49,14 @@ gbdt = lgb.LGBMRegressor(
     seed=42,
 )
 
-gbdt.fit(X_train, y_train)
+# Multistep regression
+msr = Multistep_reg()
 
-y_pred = gbdt.predict(X_test)
-
-print(f"Test score: {metrics.mean_absolute_error(y_pred, y_test)}")
-# coment
+msr.lightgb_ms(
+    X_train=X_train,
+    X_test=X_test,
+    y_train=y_train,
+    y_test=y_test,
+    regresor=gbdt,
+    period=test_period,
+)
