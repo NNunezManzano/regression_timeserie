@@ -1,9 +1,5 @@
 """
-Input: Get data from yfinance throw pandas_datareader.
-
-Output: .csv file.
-
-This script handle the ETL process, gets data from yfinance and loads to a .csv file. 
+This script extract data from yfinance. 
 
 TBD:
     - New feature: financial data by Q and Y -> add data to each date.
@@ -11,32 +7,16 @@ TBD:
 
 from pandas_datareader import data as pdr
 
-import os
-
-import numpy as np
-
 import pandas as pd
 
-import yfinance as yf
 
-# set working directory
-try:
-    os.chdir("../regression_timeserie")
-except:
-    os.chdir("../")
+class Data_extract:
+    def get_data(ticker: str, star_date, end_date) -> pd.DataFrame:
+        """Get data from yfinance trough pandas data reader lib."""
 
-yf.pdr_override()
+        ticker = ticker
 
-ticker = "SPY"
+        # download dataframe
+        raw_data = pdr.get_data_yahoo(ticker, start=star_date, end=end_date)
 
-# download dataframe
-raw_data = pdr.get_data_yahoo(ticker, start="2007-01-01", end="2017-12-31")
-
-dir = "./dataset"
-
-if not os.path.exists(dir):  # create the directory if it doesn't exist
-    os.mkdir(dir)
-
-file = f"{dir}/data_{ticker}.csv"  # file name
-
-data.to_csv(file)
+        return raw_data
