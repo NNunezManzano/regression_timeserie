@@ -11,8 +11,12 @@ import pandas as pd
 
 
 class Data_extract:
+    """
+    ETL process for stock price time serie data
+    """
+
     def get_data(ticker: str, star_date, end_date) -> pd.DataFrame:
-        """Get data from yfinance trough pandas data reader lib."""
+        """Get data from yfinance through pandas data reader lib."""
 
         ticker = ticker
 
