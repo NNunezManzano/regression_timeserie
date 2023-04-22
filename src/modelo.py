@@ -54,13 +54,13 @@ train = data.iloc[: len(data) - Params["test_set"]["test_period"]]
 valid = data.iloc[len(data) - Params["test_set"]["test_period"] :]
 
 # Train Test split
-X_train = train.drop(columns=[Params["test_set"]["Close"], "Date"])
+X_train = train.drop(columns=[Params["test_set"]["to_predict"], "Date"])
 
-y_train = train[Params["test_set"]["Close"]]
+y_train = train[Params["test_set"]["to_predict"]]
 
-X_test = valid.drop(columns=[Params["test_set"]["Close"], "Date"])
+X_test = valid.drop(columns=[Params["test_set"]["to_predict"], "Date"])
 
-y_test = valid[Params["test_set"]["Close"]]
+y_test = valid[Params["test_set"]["to_predict"]]
 
 # Appling feature engineering to train dataset
 if Params["fe"]["lags"]:
