@@ -13,7 +13,7 @@ import numpy as np
 
 
 class Feature_engineering:
-    def lags(dataframe: pd.DataFrame, n_lags: int, column: str) -> pd.DataFrame:
+    def lags(self, dataframe: pd.DataFrame, n_lags: int, column: str) -> pd.DataFrame:
         """
         Add "n" column with the close price of the previous "n" rows.
 
@@ -43,7 +43,7 @@ class Feature_engineering:
 
         return dataframe
 
-    def trend(dataframe: pd.DataFrame, trend: int, column: str) -> pd.DataFrame:
+    def trend(self, dataframe: pd.DataFrame, trend: int, column: str) -> pd.DataFrame:
         """
         Generate a trend of n days for the CLOSE PRICE of each row.
 
@@ -110,7 +110,7 @@ class Feature_engineering:
 
         return dataframe
 
-    def stocks_ts(dataframe: pd.DataFrame) -> pd.DataFrame:
+    def stocks_ts(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """
         Creates new fueatures base on a OHLC time serie dataset.
 
