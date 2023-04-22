@@ -1,19 +1,10 @@
 """ This script will run if multistep was set on model.py """
 
-import os
-
-import numpy as np
-
 import pandas as pd
-
-from feature_engineering import Feature_engineering as fe
-
-from sklearn import metrics
-
 
 class Multistep_reg:
     def lightgb_ms(
-        self, X_train, X_test, y_train, y_test, regresor, period, params
+        self, X_train, X_test, y_train, regresor, period, predicted,
     ) -> pd.DataFrame:
         """
         _summary_
@@ -32,10 +23,16 @@ class Multistep_reg:
         """
         regresor.fit(X_train, y_train)
 
-        for i in np.arange(period):
+        y_pred = []
 
-            y_pred = np.array(period)
+        for i in range(0,period):
+    
+            if i > 0:    
+                for j in range(i,0,-1):
+                    x_train.loc[len(x_train)-period+i-1,predicted] = y_pred[-j]
+    
+            y_pred.append(regresor.predict(X_test.iloc[i]))
 
-            y_pred[i] = regresor.predict(X_test[i])
-
-        return metrics.mean_absolute_error(y_pred, y_test)
+        return y_pred
+    
+   

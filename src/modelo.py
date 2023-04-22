@@ -22,7 +22,7 @@ Params = {
         "lags": True,
         "nlags": 60,
         "lags_columns": ["Close"],
-        "trend": True,
+        "trend": False,
         "trends": [20, 40],
         "trend_columns": ["Close"],
         "stock": False,
@@ -86,6 +86,7 @@ gbdt = lgb.LGBMRegressor(
 
 # Multistep regression
 msr = Multistep_reg()
+
 
 predict = msr.lightgb_ms(
     X_train=X_train,
