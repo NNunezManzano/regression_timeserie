@@ -1,10 +1,6 @@
 """This script will build the model as is, getting data with ETL, making feature_engineering and running the algorithm"""
 
 
-import pandas as pd
-import numpy as np
-import os
-
 import lightgbm as lgb
 
 from data import Data_extract
@@ -12,6 +8,8 @@ from data import Data_extract
 from feature_engineering import Feature_engineering
 
 from multistep import Multistep_reg
+
+from sklearn import metrics
 
 # Set Parameters
 Params = {
@@ -27,7 +25,7 @@ Params = {
         "trend": True,
         "trends": [20, 40],
         "trend_columns": ["Close"],
-        "stock": True,
+        "stock": False,
     },
     "test_set": {"test_period": 30, "to_predict": "Close"},
 }
@@ -48,6 +46,10 @@ data = dex.get_data(
     end_date=Params["dex"]["end_date"],
 )
 
+# Appling lags
+if Params["fe"]["lags"]:
+    for column in Params["fe"]["lags_columns"]:
+        data = fe.lags(data, n_lags=Params["fe"]["nlags"], column=column)
 
 # train test split
 train = data.iloc[: len(data) - Params["test_set"]["test_period"]]
@@ -62,11 +64,7 @@ X_test = valid.drop(columns=[Params["test_set"]["to_predict"], "Date"])
 
 y_test = valid[Params["test_set"]["to_predict"]]
 
-# Appling feature engineering to train dataset
-if Params["fe"]["lags"]:
-    for column in Params["fe"]["lags_columns"]:
-        X_train = fe.lags(X_train, n_lags=Params["fe"]["nlags"], column=column)
-
+# Appling trends
 if Params["fe"]["trend"]:
     for column in Params["fe"]["trend_columns"]:
         for trend in Params["fe"]["trends"]:
@@ -89,12 +87,14 @@ gbdt = lgb.LGBMRegressor(
 # Multistep regression
 msr = Multistep_reg()
 
-msr.lightgb_ms(
+predict = msr.lightgb_ms(
     X_train=X_train,
     X_test=X_test,
     y_train=y_train,
-    y_test=y_test,
     regresor=gbdt,
     period=Params["test_set"]["test_period"],
     params=Params,
 )
+
+
+print(metrics.mean_absolute_error(predict, y_test))
